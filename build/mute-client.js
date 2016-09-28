@@ -1,4 +1,31 @@
-(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+!function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.Mute=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
+/*
+ *	Copyright 2014 Matthieu Nicolas
+ *
+ *	This program is free software: you can redistribute it and/or modify
+ *	it under the terms of the GNU General Public License as published by
+ *	the Free Software Foundation, either version 3 of the License, or
+ * 	(at your option) any later version.
+ *
+ *	This program is distributed in the hope that it will be useful,
+ *	but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *	GNU General Public License for more details.
+ *
+ *	You should have received a copy of the GNU General Public License
+ *	along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+var Mute = {
+	Coordinator: _dereq_('./lib/coordinator'),
+    SocketIOAdapter: _dereq_('./lib/socket-io-adapter'),
+    AceEditorAdapter: _dereq_('./lib/ace-editor-adapter'),
+    InfosUsersModule: _dereq_('./lib/infos-users'),
+    PeerIOAdapter: _dereq_('./lib/peer-io-adapter')
+};
+
+module.exports = Mute;
+},{"./lib/ace-editor-adapter":2,"./lib/coordinator":3,"./lib/infos-users":4,"./lib/peer-io-adapter":5,"./lib/socket-io-adapter":6}],2:[function(_dereq_,module,exports){
 /*
  *	Copyright 2014 Matthieu Nicolas
  *
@@ -18,7 +45,7 @@
  *  along with Mute-client.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-var events = require('events');
+var events = _dereq_('events');
 var UndoManager = ace.require('ace/undomanager').UndoManager;
 
 var INIT_MODE = -1;
@@ -375,7 +402,7 @@ AceEditorAdapter.prototype.onCoordinatorDisposedHandler = function (data) {
 };
 
 module.exports = AceEditorAdapter;
-},{"events":7}],2:[function(require,module,exports){
+},{"events":7}],3:[function(_dereq_,module,exports){
 /*
  *  Copyright 2014 Matthieu Nicolas
  *
@@ -398,16 +425,16 @@ module.exports = AceEditorAdapter;
 var ONLINE_MODE = 0;
 var OFFLINE_MODE = 1;
 
-var Utils = require('mute-utils');
-var events = require('events');
+var Utils = _dereq_('mute-utils');
+var events = _dereq_('events');
 
-var IdentifierInterval = require('mute-structs').IdentifierInterval;
-var Identifier = require('mute-structs').Identifier;
-var LogootSRopes = require('mute-structs').LogootSRopes;
-var TextInsert = require('mute-structs').TextInsert;
-var TextDelete = require('mute-structs').TextDelete;
-var LogootSAdd = require('mute-structs').LogootSAdd;
-var LogootSDel = require('mute-structs').LogootSDel;
+var IdentifierInterval = _dereq_('mute-structs').IdentifierInterval;
+var Identifier = _dereq_('mute-structs').Identifier;
+var LogootSRopes = _dereq_('mute-structs').LogootSRopes;
+var TextInsert = _dereq_('mute-structs').TextInsert;
+var TextDelete = _dereq_('mute-structs').TextDelete;
+var LogootSAdd = _dereq_('mute-structs').LogootSAdd;
+var LogootSDel = _dereq_('mute-structs').LogootSDel;
 
 var Coordinator = function (docID, serverDB) {
     var coordinator = this;
@@ -700,6 +727,7 @@ Coordinator.prototype.cleanBufferTextOp = function () {
             //On stocke en local au cas où il y a une déconnexion
             this.changed = true;
             Utils.pushAll(this.bufferLocalLogootSOp, logootSOperations);
+            console.log('[Tracker] [' + this.timeSend  +  '] Message sent : ' + logootSOperations[0].l);
             this.emit('operations', logootSOperations);
         }
 
@@ -791,6 +819,7 @@ Coordinator.prototype.applyTextOperation = function (str, to) {
     // Must identify which type of text operation it is
     if(to.content !== undefined && to.offset !== undefined && to.content !== null && to.offset !== null) {
         // Insertion
+        console.log('[Tracker] [' + Date.now() +  '] Message received : ' + to.content);
         str = Utils.insert(str, to.offset, to.content);
     }
     else if(to.length !== undefined && to.length !== null && to.offset !== undefined && to.offset !== null) {
@@ -1003,37 +1032,8 @@ Coordinator.prototype.dispose = function () {
 
 module.exports = Coordinator;
 
-},{"events":7,"mute-structs":8,"mute-utils":24}],3:[function(require,module,exports){
-/*
- *	Copyright 2014 Matthieu Nicolas
- *
- *	This file is part of Mute-client.
- *
- *  Mute-client is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
- *
- *  Mute-client is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with Mute-client.  If not, see <http://www.gnu.org/licenses/>.
- */
-
-Mute = {
-	Coordinator: require('./coordinator'),
-	SocketIOAdapter: require('./socket-io-adapter'),
-	AceEditorAdapter: require('./ace-editor-adapter'),
-	InfosUsersModule: require('./infos-users'),
-	PeerIOAdapter: require('./peer-io-adapter')
-};
-
-module.exports = Mute;
-},{"./ace-editor-adapter":1,"./coordinator":2,"./infos-users":4,"./peer-io-adapter":5,"./socket-io-adapter":6}],4:[function(require,module,exports){
-var events = require('events');
+},{"events":7,"mute-structs":8,"mute-utils":24}],4:[function(_dereq_,module,exports){
+var events = _dereq_('events');
 
 var InfosUsersModule = function (docID, coordinator, editor, network, usernameManager, serverDB) {
     var infosUsersModule = this;
@@ -1436,8 +1436,8 @@ InfosUsersModule.prototype.onCoordinatorDisposedHandler = function () {
 
 module.exports = InfosUsersModule;
 
-},{"events":7}],5:[function(require,module,exports){
-var events = require('events');
+},{"events":7}],5:[function(_dereq_,module,exports){
+var events = _dereq_('events');
 
 /*
 Data Object
@@ -1565,6 +1565,7 @@ PeerIOAdapter.prototype.handleEvent = function (args) {
       console.log('EVENT: ' + data.event, data)
       switch (data.event) {
         case 'sendOps':
+          console.log('[Tracker-log] ' + args.length)
           data.data.replicaNumber = this.replicaNumber;
           this.emit('receiveOps', data.data);
           break;
@@ -1862,7 +1863,7 @@ PeerIOAdapter.prototype.setReplicaNumber = function(peerId, replicaNumber) {
 
 module.exports = PeerIOAdapter;
 
-},{"events":7}],6:[function(require,module,exports){
+},{"events":7}],6:[function(_dereq_,module,exports){
 /*
  *  Copyright 2014 Matthieu Nicolas
  *
@@ -1882,7 +1883,7 @@ module.exports = PeerIOAdapter;
  *  along with Mute-client.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-var events = require('events');
+var events = _dereq_('events');
 
 var SocketIOAdapter = function (coordinator) {
     var socketIOAdapter = this;
@@ -2079,7 +2080,7 @@ SocketIOAdapter.prototype.onCoordinatorDisposedHandler = function () {
 
 module.exports = SocketIOAdapter;
 
-},{"events":7}],7:[function(require,module,exports){
+},{"events":7}],7:[function(_dereq_,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -2382,7 +2383,7 @@ function isUndefined(arg) {
   return arg === void 0;
 }
 
-},{}],8:[function(require,module,exports){
+},{}],8:[function(_dereq_,module,exports){
 /*
  *	Copyright 2014 Matthieu Nicolas
  *
@@ -2399,9 +2400,9 @@ function isUndefined(arg) {
  *	You should have received a copy of the GNU General Public License
  *	along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-module.exports = require('./lib/index');
+module.exports = _dereq_('./lib/index');
 
-},{"./lib/index":12}],9:[function(require,module,exports){
+},{"./lib/index":12}],9:[function(_dereq_,module,exports){
 /*
  *  Copyright 2014 Matthieu Nicolas
  *
@@ -2547,7 +2548,7 @@ Identifier.prototype.maxOffsetBeforeNex = function (next, max) {
 
 module.exports = Identifier;
 
-},{}],10:[function(require,module,exports){
+},{}],10:[function(_dereq_,module,exports){
 /*
  *  Copyright 2014 Matthieu Nicolas
  *
@@ -2620,7 +2621,7 @@ IdentifierInterval.prototype.toString = function () {
 
 module.exports = IdentifierInterval;
 
-},{}],11:[function(require,module,exports){
+},{}],11:[function(_dereq_,module,exports){
 /*
  *  Copyright 2014 Matthieu Nicolas
  *
@@ -2668,7 +2669,7 @@ module.exports = {
     }
 };
 
-},{}],12:[function(require,module,exports){
+},{}],12:[function(_dereq_,module,exports){
 /*
  *  Copyright 2014 Matthieu Nicolas
  *
@@ -2688,23 +2689,23 @@ module.exports = {
  *  along with Mute-structs.  If not, see <http://www.gnu.org/licenses/>.
  */
  module.exports = {
-    "Identifier"     : require('./identifier'),
-    "IdentifierInterval"     : require('./identifierinterval'),
-    "IDFactory"     : require('./idfactory'),
-    "InfiniteString"      : require('./infinitestring'),
-    "Iterator"    : require('./iterator'),
-    "IteratorHelperIdentifier" : require('./iteratorhelperidentifier'),
-    "LogootSAdd"  : require('./logootsadd'),
-    "LogootSBlock"  : require('./logootsblock'),
-    "LogootSDel"  : require('./logootsdel'),
-    "LogootSRopes"  : require('./logootsropes'),
-    "ResponseIntNode"  : require('./responseintnode'),
-    "RopesNodes"  : require('./ropesnodes'),
-    "TextDelete": require('./textdelete'),
-    "TextInsert"    : require('./textinsert')
+    "Identifier"     : _dereq_('./identifier'),
+    "IdentifierInterval"     : _dereq_('./identifierinterval'),
+    "IDFactory"     : _dereq_('./idfactory'),
+    "InfiniteString"      : _dereq_('./infinitestring'),
+    "Iterator"    : _dereq_('./iterator'),
+    "IteratorHelperIdentifier" : _dereq_('./iteratorhelperidentifier'),
+    "LogootSAdd"  : _dereq_('./logootsadd'),
+    "LogootSBlock"  : _dereq_('./logootsblock'),
+    "LogootSDel"  : _dereq_('./logootsdel'),
+    "LogootSRopes"  : _dereq_('./logootsropes'),
+    "ResponseIntNode"  : _dereq_('./responseintnode'),
+    "RopesNodes"  : _dereq_('./ropesnodes'),
+    "TextDelete": _dereq_('./textdelete'),
+    "TextInsert"    : _dereq_('./textinsert')
 };
 
-},{"./identifier":9,"./identifierinterval":10,"./idfactory":11,"./infinitestring":13,"./iterator":14,"./iteratorhelperidentifier":15,"./logootsadd":16,"./logootsblock":17,"./logootsdel":18,"./logootsropes":19,"./responseintnode":20,"./ropesnodes":21,"./textdelete":22,"./textinsert":23}],13:[function(require,module,exports){
+},{"./identifier":9,"./identifierinterval":10,"./idfactory":11,"./infinitestring":13,"./iterator":14,"./iteratorhelperidentifier":15,"./logootsadd":16,"./logootsblock":17,"./logootsdel":18,"./logootsropes":19,"./responseintnode":20,"./ropesnodes":21,"./textdelete":22,"./textinsert":23}],13:[function(_dereq_,module,exports){
 /*
  *  Copyright 2014 Matthieu Nicolas
  *
@@ -2741,7 +2742,7 @@ InfiniteString.prototype.next = function () {
 
 module.exports = InfiniteString;
 
-},{}],14:[function(require,module,exports){
+},{}],14:[function(_dereq_,module,exports){
 /*
  *  Copyright 2014 Matthieu Nicolas
  *
@@ -2789,7 +2790,7 @@ Iterator.prototype.next = function () {
 
 module.exports = Iterator;
 
-},{}],15:[function(require,module,exports){
+},{}],15:[function(_dereq_,module,exports){
 /*
  *  Copyright 2014 Matthieu Nicolas
  *
@@ -2877,7 +2878,7 @@ IteratorHelperIdentifier.prototype.computeResults = function() {
 
 module.exports = IteratorHelperIdentifier;
 
-},{}],16:[function(require,module,exports){
+},{}],16:[function(_dereq_,module,exports){
 /*
  *  Copyright 2014 Matthieu Nicolas
  *
@@ -2918,7 +2919,7 @@ LogootSAdd.prototype.execute = function (doc) {
 
 module.exports = LogootSAdd;
 
-},{}],17:[function(require,module,exports){
+},{}],17:[function(_dereq_,module,exports){
 /*
  *  Copyright 2014 Matthieu Nicolas
  *
@@ -2980,7 +2981,7 @@ LogootSBlock.prototype.toString = function() {
 
 module.exports = LogootSBlock;
 
-},{}],18:[function(require,module,exports){
+},{}],18:[function(_dereq_,module,exports){
 /*
  *  Copyright 2014 Matthieu Nicolas
  *
@@ -3026,7 +3027,7 @@ LogootSDel.prototype.execute = function (doc) {
 
 module.exports = LogootSDel;
 
-},{}],19:[function(require,module,exports){
+},{}],19:[function(_dereq_,module,exports){
 /*
  *  Copyright 2014 Matthieu Nicolas
  *
@@ -3045,21 +3046,21 @@ module.exports = LogootSDel;
  *  You should have received a copy of the GNU General Public License
  *  along with Mute-structs.  If not, see <http://www.gnu.org/licenses/>.
  */
- Utils = require('mute-utils');
+ Utils = _dereq_('mute-utils');
 
-Identifier = require('./identifier');
-IdentifierInterval = require('./identifierinterval');
-IDFactory = require('./idfactory');
-InfiniteString = require('./infinitestring');
-Iterator = require('./iterator');
-IteratorHelperIdentifier = require('./iteratorhelperidentifier');
-LogootSAdd = require('./logootsadd');
-LogootSBlock = require('./logootsblock');
-LogootSDel = require('./logootsdel');
-ResponseIntNode = require('./responseintnode');
-RopesNodes = require('./ropesnodes');
-TextDelete = require('./textdelete');
-TextInsert = require('./textinsert');
+Identifier = _dereq_('./identifier');
+IdentifierInterval = _dereq_('./identifierinterval');
+IDFactory = _dereq_('./idfactory');
+InfiniteString = _dereq_('./infinitestring');
+Iterator = _dereq_('./iterator');
+IteratorHelperIdentifier = _dereq_('./iteratorhelperidentifier');
+LogootSAdd = _dereq_('./logootsadd');
+LogootSBlock = _dereq_('./logootsblock');
+LogootSDel = _dereq_('./logootsdel');
+ResponseIntNode = _dereq_('./responseintnode');
+RopesNodes = _dereq_('./ropesnodes');
+TextDelete = _dereq_('./textdelete');
+TextInsert = _dereq_('./textinsert');
 
 var LogootSRopes = function (replicaNumber) {
     this.replicaNumber = replicaNumber || 0;
@@ -3801,7 +3802,7 @@ LogootSRopes.prototype.viewLength = function () {
 
 module.exports = LogootSRopes;
 
-},{"./identifier":9,"./identifierinterval":10,"./idfactory":11,"./infinitestring":13,"./iterator":14,"./iteratorhelperidentifier":15,"./logootsadd":16,"./logootsblock":17,"./logootsdel":18,"./responseintnode":20,"./ropesnodes":21,"./textdelete":22,"./textinsert":23,"mute-utils":24}],20:[function(require,module,exports){
+},{"./identifier":9,"./identifierinterval":10,"./idfactory":11,"./infinitestring":13,"./iterator":14,"./iteratorhelperidentifier":15,"./logootsadd":16,"./logootsblock":17,"./logootsdel":18,"./responseintnode":20,"./ropesnodes":21,"./textdelete":22,"./textinsert":23,"mute-utils":24}],20:[function(_dereq_,module,exports){
 /*
  *  Copyright 2014 Matthieu Nicolas
  *
@@ -3828,7 +3829,7 @@ var ResponseIntNode = function (i, node, path) {
 
 module.exports = ResponseIntNode;
 
-},{}],21:[function(require,module,exports){
+},{}],21:[function(_dereq_,module,exports){
 /*
  *  Copyright 2014 Matthieu Nicolas
  *
@@ -4088,7 +4089,7 @@ RopesNodes.prototype.copyFromJSON = function (node) {
 
 module.exports = RopesNodes;
 
-},{}],22:[function(require,module,exports){
+},{}],22:[function(_dereq_,module,exports){
 /*
  *  Copyright 2014 Matthieu Nicolas
  *
@@ -4118,7 +4119,7 @@ TextDelete.prototype.applyTo = function (doc) {
 
 module.exports = TextDelete;
 
-},{}],23:[function(require,module,exports){
+},{}],23:[function(_dereq_,module,exports){
 /*
  *  Copyright 2014 Matthieu Nicolas
  *
@@ -4148,7 +4149,7 @@ TextInsert.prototype.applyTo = function (doc) {
 
 module.exports = TextInsert;
 
-},{}],24:[function(require,module,exports){
+},{}],24:[function(_dereq_,module,exports){
 /*
  * Copyright 2014-2015 Matthieu Nicolas
  * Copyright 2016 Matthieu Nicolas, Victorien Elvinger
@@ -4256,4 +4257,6 @@ module.exports = {
 	}
 };
 
-},{}]},{},[3])
+},{}]},{},[1])
+(1)
+});
