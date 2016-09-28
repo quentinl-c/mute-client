@@ -421,6 +421,8 @@ module.exports = AceEditorAdapter;
  *  You should have received a copy of the GNU General Public License
  *  along with Mute-client.  If not, see <http://www.gnu.org/licenses/>.
  */
+/*global require, module, setInterval, clearInterval, setTimeout, clearTimeout, console */
+"use strict";
 
 var ONLINE_MODE = 0;
 var OFFLINE_MODE = 1;
@@ -446,7 +448,7 @@ var Coordinator = function (docID, serverDB) {
     this.lastModificationDate = new Date();
     this.replicaNumber = -1;
     this.clock = 0;
-    this.ropes = new LogootSRopes();
+    this.ropes = new LogootSRopes(this.replicaNumber);
     this.bufferLocalLogootSOp = []; // Buffer contenant les LogootSOperations locales actuellement non ack
     this.mode = ONLINE_MODE;
     // --------------------------------
@@ -585,8 +587,6 @@ Coordinator.prototype.setEditor = function (editor) {
 
 Coordinator.prototype.setNetwork = function (network) {
     var coordinator = this;
-    var content;
-    var replicaNumber;
 
     this.network = network;
 
@@ -808,7 +808,7 @@ Coordinator.prototype.generateLogootSOp = function (temp) {
     else if(temp.lid !== undefined && temp.lid !== null) {
         // Deletion
         var lid = [];
-        for(i=0; i<temp.lid.length; i++) {
+        for(var i=0; i<temp.lid.length; i++) {
             lid.push(new IdentifierInterval(temp.lid[i].base, temp.lid[i].begin, temp.lid[i].end));
         }
         return new LogootSDel(lid);
@@ -830,7 +830,7 @@ Coordinator.prototype.applyTextOperation = function (str, to) {
 };
 
 Coordinator.prototype.applyReverseTextOperation = function (str, to) {
-    if(to.content !== undefined && to.offset !== undefined && to.content !== null && to.offset !== null) {
+    if(to.content !== undefined && to.offset !== undefined && to.content !== null && to.offset !== null) {
         // Insertion so have to delete
         str = Utils.del(str, to.offset, to.offset + to.content.length - 1);
     }
@@ -864,7 +864,6 @@ Coordinator.prototype.join = function (json) {
     var coordinator = this;
 
     var temp;
-    var content;
 
     json.docID = this.docID;
 
@@ -1006,7 +1005,7 @@ Coordinator.prototype.updateLastModificationDate = function (dateValue) {
             coordinator.emit('updateLastModificationDate', { lastModificationDate: coordinator.lastModificationDate });
             coordinator.updateLastModificationDateTimeout = null;
         }, 1000);
-    };
+    }
 };
 
 Coordinator.prototype.dispose = function () {
