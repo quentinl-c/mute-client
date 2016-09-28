@@ -480,6 +480,9 @@ var Coordinator = function (docID, serverDB) {
 
     this.updateLastModificationDateTimeout = null;
 
+    this.timeSend = null;
+
+
     this.localOperationHandler = function (data) {
         console.log("local op !");
         console.log(data);
@@ -637,6 +640,7 @@ Coordinator.prototype.addBufferTextOp = function (data) {
 
     if(data.action === 'insertText')
     {
+        this.timeSend = Date.now();
         if(this.prevOpPos !== data.index) {
             newOperation = true;
         }
